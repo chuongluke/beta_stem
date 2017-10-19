@@ -52,15 +52,15 @@
 		  					</a> -->
 		  					<a href="/courses" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học
+		  						Khóa học<span class="badge bg-pink"><t t-esc="len(all_courses)"/></span>
 		  					</a>
 		  					<a href="/event" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
-		  						Sự kiện<!-- <span class="badge bg-pink">14</span> -->
+		  						Sự kiện<span class="badge bg-pink"><t t-esc="len(events)"/></span>
 		  					</a>
 		  					<a href="/forum" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-comments-o text-danger" aria-hidden="true"></i>
-		  						Diễn đàn
+		  						Diễn đàn<span class="badge bg-pink"><t t-esc="len(forums)"/></span>
 		  					</a>
 		  					<!-- <a class="list-group-item list-group-item1" href="/home/my-courses">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
@@ -105,9 +105,13 @@
 											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
 											<span class="MR10 text-danger">FREE</span>
 											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
-											<span class="MR10 text-primary">250</span>
+											<span class="MR10 text-primary">
+												<t t-esc="len(online_free_course.course_enrollment_ids)"/>
+											</span>
 											<i class="MR5 fa fa-star-half-o" aria-hidden="true"></i>
-											<span class="text-vang">50</span>
+											<span class="text-vang">
+												<t t-esc="online_free_course.rating_last_value"/>
+											</span>
 										</p>
 			  	    				</div>
 			  	    			</t>
@@ -196,26 +200,41 @@
 
 	          				<div class="box-bor">
 		  	    				<h3 class="text-xanh1">
-		  	    					<a href="">Khóa học trực tuyến Miễn phí</a>
+		  	    					<a href="">Khóa học trực tuyến</a>
 		  	    				</h3>
-		  	    				<img class="img-responsive" src="/stem_frontend_theme/static/src/images/mh3.png" alt=""/>
-								<h4 class="MB5">
-									<a href="">Thiết kế Kỹ thuật Sáng tạo</a>
-								</h4>
-								<p class="text-a">
-									Giáo viên: <span>Nguyễn Tiến</span>
-								</p>
-								<p class="text-a">
-									Mô tả ngắn gọn khóa học...Mô tả ngắn gọn khóa học...
-								</p>
-								<p class="text-muted MB0">
-									<i class="MR5 fa fa-usd" aria-hidden="true"></i>
-									<span class="MR10 text-danger">PAID</span>
-									<i class="MR5 fa fa-eye" aria-hidden="true"></i>
-									<span class="MR10 text-primary">250</span>
-									<i class="MR5 fa fa-star-half-o" aria-hidden="true"></i>
-									<span class="text-vang">50</span>
-								</p>
+		  	    				<t t-foreach="online_paid_courses" t-as="online_paid_course">
+			  	    				<div class="MB20">
+			  	    					<img t-if="not online_paid_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
+	                                	<img t-if="online_paid_course.image" t-attf-src="/web/image/op.course/#{online_paid_course.id}/image" class="img-responsive" />
+
+										<h4 class="MB5">
+											<a t-attf-href="/course-detail/#{slug(online_paid_course)}"
+												t-esc="online_paid_course.name"/>
+										</h4>
+										<p class="text-a">
+											Giáo viên:
+											<t t-foreach="online_paid_course.faculty_ids"
+	                                               t-as="faculty">
+	                                        	<span t-raw="faculty.name"/>
+	                                        </t>
+	                                    </p>
+										<p class="text-a" t-raw="online_paid_course.short_description"></p>
+										<p class="text-muted MB0">
+											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
+											<span class="MR10 text-danger">
+												<t t-esc="online_paid_course.price"/>
+											</span>
+											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
+											<span class="MR10 text-primary">
+												<t t-esc="len(online_paid_course.course_enrollment_ids)"/>
+											</span>
+											<i class="MR5 fa fa-star-half-o" aria-hidden="true"></i>
+											<span class="text-vang">
+												<t t-esc="online_paid_course.rating_last_value"/>
+											</span>
+										</p>
+			  	    				</div>
+			  	    			</t>
 	          				</div>
 	          			</t>
       				</aside>
@@ -244,23 +263,23 @@
 		  					</a>
 		  					<a href="/home/my-blogs" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-file-text-o text-primary" aria-hidden="true"></i>
-		  						Bảng tin<!-- <span class="badge bg-pink">14</span> -->
+		  						Bảng tin<span class="badge bg-pink"><t t-esc="len(posts)"/></span>
 		  					</a>
 		  					<a href="/home/my-mes" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-commenting-o text-danger" aria-hidden="true"></i>
-		  						Tin nhắn<!-- <span class="badge bg-pink">14</span> -->
+		  						Tin nhắn<span class="badge bg-pink"><t t-esc="len(my_channels)"/></span>
 		  					</a>
 		  					<a href="/courses" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học
+		  						Khóa học<span class="badge bg-pink"><t t-esc="len(online_free_courses)"/></span>
 		  					</a>
-		  					<a href="/event" class="list-group-item list-group-item1">
+		  					<!-- <a href="/event" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
-		  						Sự kiện<!-- <span class="badge bg-pink">14</span> -->
-		  					</a>
+		  						Sự kiện<span class="badge bg-pink">14</span>
+		  					</a> -->
 		  					<a class="list-group-item list-group-item1" href="/home/my-courses">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học của tôi
+		  						Khóa học của tôi<span class="badge bg-pink"><t t-esc="len(my_courses)"/></span>
 		  					</a>
 
 		  					<t t-if="parent">
@@ -370,9 +389,13 @@
 											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
 											<span class="MR10 text-danger">FREE</span>
 											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
-											<span class="MR10 text-primary">250</span>
+											<span class="MR10 text-primary">
+												<t t-esc="len(online_free_course.course_enrollment_ids)"/>
+											</span>
 											<i class="MR5 fa fa-star-half-o" aria-hidden="true"></i>
-											<span class="text-vang">50</span>
+											<span class="text-vang">
+												<t t-esc="online_free_course.rating_last_value"/>
+											</span>
 										</p>
 			  	    				</div>
 			  	    			</t>
@@ -457,6 +480,46 @@
 				  						<span class="sr-only">Next</span>
 				  					</a>
 				  				</div>
+	          				</div>
+
+
+	          				<div class="box-bor">
+		  	    				<h3 class="text-xanh1">
+		  	    					<a href="">Khóa học trực tuyến</a>
+		  	    				</h3>
+		  	    				<t t-foreach="online_paid_courses" t-as="online_paid_course">
+			  	    				<div class="MB20">
+			  	    					<img t-if="not online_paid_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
+	                                	<img t-if="online_paid_course.image" t-attf-src="/web/image/op.course/#{online_paid_course.id}/image" class="img-responsive" />
+
+										<h4 class="MB5">
+											<a t-attf-href="/course-detail/#{slug(online_paid_course)}"
+												t-esc="online_paid_course.name"/>
+										</h4>
+										<p class="text-a">
+											Giáo viên:
+											<t t-foreach="online_paid_course.faculty_ids"
+	                                               t-as="faculty">
+	                                        	<span t-raw="faculty.name"/>
+	                                        </t>
+	                                    </p>
+										<p class="text-a" t-raw="online_paid_course.short_description"></p>
+										<p class="text-muted MB0">
+											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
+											<span class="MR10 text-danger">
+												<t t-esc="online_paid_course.price"/>
+											</span>
+											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
+											<span class="MR10 text-primary">
+												<t t-esc="len(online_paid_course.course_enrollment_ids)"/>
+											</span>
+											<i class="MR5 fa fa-star-half-o" aria-hidden="true"></i>
+											<span class="text-vang">
+												<t t-esc="online_paid_course.rating_last_value"/>
+											</span>
+										</p>
+			  	    				</div>
+			  	    			</t>
 	          				</div>
 	          			</t>
       				</aside>

@@ -21,8 +21,34 @@ except ImportError:
 class Stem(http.Controller):
     def get_menu_data(self):
         parent = http.request.env['op.parent'].sudo().search([('name', '=', http.request.env.user.partner_id.id)], limit=1)
+
+        online_free_courses = http.request.env['op.course'].sudo().search([('online_course', '=', True), ('type', '=', 'free')], limit=3, order='create_date desc')
+
+        online_paid_courses = http.request.env['op.course'].sudo().search(                
+                [('online_course', '=', True), ('type', '=', 'paid')], limit=3, order='create_date desc')
+
+
+        my_channels = http.request.env['mail.channel'].sudo().search([('channel_partner_ids', 'in', [http.request.env.user.partner_id.id])],limit=10, order='__last_update asc')
+
+        enrollments = http.request.env['op.course.enrollment'].sudo().search(
+            [('user_id', '=', http.request.env.uid),
+            ('state', 'in', ['in_progress', 'done'])])
+        my_courses = []
+        if enrollments:
+            my_courses = self.my_course_details(enrollments)
+
+        forums = http.request.env['forum.forum'].sudo().search([])
+
+        posts = http.request.env['blog.post'].sudo().search([('website_published', '=', True)])
+
         return {
-            'parent': parent
+            'parent': parent,
+            'online_free_courses': online_free_courses,
+            'my_channels': my_channels,
+            'my_courses': my_courses,
+            'forums': forums,
+            'posts': posts,
+            'online_paid_courses': online_paid_courses
         }
 
     @http.route('/home', auth='user', website=True)
@@ -342,9 +368,18 @@ class Website(Website):
             online_free_courses = http.request.env['op.course'].sudo().search(                
                 [('online_course', '=', True), ('type', '=', 'free')], limit=3, order='create_date desc')
 
+            online_paid_courses = http.request.env['op.course'].sudo().search(                
+                [('online_course', '=', True), ('type', '=', 'paid')], limit=3, order='create_date desc')
+
+            forums = http.request.env['forum.forum'].sudo().search([])
+
+            all_courses = http.request.env['op.course'].sudo().search([])
+
+            events = http.request.env['event.event'].sudo().search([])
+
             course_porpular = http.request.env['stem.rec_cu_by_predef'].sudo().search([('user_id', '=', http.request.env.uid)], limit=9, order='computed_date desc')
 
-            return http.request.render('stem_frontend_theme.stem_home', {'online_free_courses': online_free_courses, 'course_porpular': course_porpular})        
+            return http.request.render('stem_frontend_theme.stem_home', {'online_free_courses': online_free_courses, 'online_paid_courses': online_paid_courses, 'course_porpular': course_porpular, 'forums': forums, 'events': events, 'all_courses': all_courses})        
         else:
 
             try:   

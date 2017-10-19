@@ -23,7 +23,8 @@
         'openeducat_core',
         'mail',
         'contacts',
-        'stem_tables'
+        'stem_tables',
+        'website_forum'
     ],
     "data": [
         'views/assets.xml',
