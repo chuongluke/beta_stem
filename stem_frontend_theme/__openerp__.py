@@ -41,7 +41,8 @@
         'views/my_child_courses.xml',
         'views/view_faculty.xml',
         'views/signup.xml',
-        'views/faculty_mail_template.xml'
+        'views/faculty_mail_template.xml',
+        'views/material_detail_view.xml'
     ],
 }
 
