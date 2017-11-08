@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 	<data>
-		<template id="stem_my_child_courses" name="STEM My child's courses">
-			<t t-call="stem_frontend_theme.stem_profile">
+		<template id="stem_profile_courses">
+			<t t-call="stem_frontend_theme.stem_user_profile">
 				<div class="box-bor MB20">
   	    			<h3 class="text-xanh1">
-  	    				<a href="#">Khóa học của <t t-esc="child.name" /></a>
+  	    				<a href="#">Khóa học của <t t-esc="partner.name" /></a>
   	    			</h3>
 
     				<t t-if="not my_courses">
     					<div class="MB20">
-	                		<p><t t-esc="child.name" /> chưa đăng ký khóa học.</p>
+	                		<p><t t-esc="partner.name" /> chưa đăng ký khóa học.</p>
 		            	</div>
 		            </t>
 		            <t t-if="my_courses">
 		            	<t t-foreach="my_courses" t-as="course">
-		            		<div class="MB20">
+		            		<div t-attf-class="MB20 {{ '' if course_index == 0 else 'course-container' }}">
 	  	    					<img t-if="not course['course'].image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
                             	<img t-if="course['course'].image" t-attf-src="/web/image/op.course/#{course['course'].id}/image" class="img-responsive" />
 
@@ -42,50 +42,6 @@
 	  	    				</div>
 	  	    			</t>
 		            </t>
-  	    		</div>
-
-  	    		<div class="box-bor MB20">
-  	    			<h3 class="text-xanh1">
-  	    				<a href="#">Bài tập</a>
-  	    			</h3>
-
-  	    			<table class="table table-hover">
-  	    				<thead>
-  	    					<tr>
-  	    						<th>Tên</th>
-  	    						<th>Khóa học</th>
-  	    						<th>Lớp</th>
-  	    						<th>Môn học</th>
-  	    						<th>Giáo viên</th>
-  	    						<th>Trạng thái</th>
-  	    					</tr>
-  	    				</thead>
-
-  	    				<tbody>
-  	    					<t t-foreach="assignments" t-as="a">
-  	    						<tr>
-  	    							<td>
-  	    								<t t-esc="a.name"/>
-  	    							</td>
-  	    							<td>
-  	    								<t t-esc="a.course_id.name"/>
-  	    							</td>
-  	    							<td>
-  	    								<t t-esc="a.batch_id.name"/>
-  	    							</td>
-  	    							<td>
-  	    								<t t-esc="a.subject_id.name"/>
-  	    							</td>
-  	    							<td>
-  	    								<t t-esc="a.faculty_id.name"/>
-  	    							</td>
-  	    							<td>
-  	    								<t t-esc="a.state"/>
-  	    							</td>
-  	    						</tr>
-  	    					</t>
-  	    				</tbody>
-  	    			</table>
   	    		</div>
 			</t>
 		</template>

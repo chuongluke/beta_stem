@@ -35,9 +35,10 @@
 
 		<template id="stem_home" name="STEM Home">
 			<t t-call="website.layout">
+			     
 				<section class="row">
   	  				<aside class="col-md-2">
-  	  					<div class="list-group">
+  	  					<div class="list-group" id="menu">
 		  					<a href="/home" class="list-group-item list-group-item1 border-B1" t-if="website.user_id != user_id">
 		  						<img t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" class="img-circle MR5" t-att-alt="user_id.name" width="32"/>
 		  						<t t-esc="(len(user_id.name)&gt;25) and (user_id.name[:23]+'...') or user_id.name"/>
@@ -50,42 +51,64 @@
 		  						<i class="MR10 fa fa-commenting-o text-danger" aria-hidden="true"></i>
 		  						Tin nhắn<span class="badge bg-pink">14</span>
 		  					</a> -->
-		  					<a href="/courses" class="list-group-item list-group-item1">
+		  					<a href="/all-courses" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
 		  						Khóa học<span class="badge bg-pink"><t t-esc="len(all_courses)"/></span>
 		  					</a>
-		  					<a href="/event" class="list-group-item list-group-item1">
+		  					<a href="/current-event" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
-		  						Sự kiện<span class="badge bg-pink"><t t-esc="len(events)"/></span>
+		  						Sự kiện<span class="badge bg-pink"><t t-esc="len(current_events)"/></span>
 		  					</a>
-		  					<a href="/forum" class="list-group-item list-group-item1">
-		  						<i class="MR10 fa fa-comments-o text-danger" aria-hidden="true"></i>
-		  						Diễn đàn<span class="badge bg-pink"><t t-esc="len(forums)"/></span>
-		  					</a>
-		  					<!-- <a class="list-group-item list-group-item1" href="/home/my-courses">
-		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học của tôi
-		  					</a> -->
-		  					<!-- <a href="#" class="list-group-item list-group-item1">
-		  						<i class="MR10 fa fa-users text-info" aria-hidden="true"></i>
-		  						Nhóm
-		  					</a>
-		  					<a href="#" class="list-group-item list-group-item1">
-		  						<i class="MR10 fa fa-address-book-o text-warning" aria-hidden="true"></i>
-		  						Dánh sách bạn bè
-		  					</a> -->
+							<a href="/forum/stem-forum-2" class="list-group-item list-group-item1">
+								<i class="MR10 fa fa-comments-o text-danger" aria-hidden="true"></i>
+								Tri thức STEM<!-- <span class="badge bg-pink"><t t-esc="len(forums)"/></span> -->
+							</a>	
 						</div>
   	  				</aside>
 
   	  				<aside class="col-md-7">
   	  					<t t-raw="0">
+  	  						<div class="box-bor MB20">
+  	  							<div>
+  	  								<div>
+  	  									<div>
+  	  										<div class="addQuestionPrompt">
+  	  											<div >
+  	  												<span>
+  	  													<h3>TRI THỨC STEM</h3>
+  	  												</span>
+  	  											</div>
+  	  											<div class="form-group">
+  	  												<input type="text" class="x-name-question form-control" placeholder="Tìm kiếm hoặc đặt câu hỏi..."/>
+  	  												<span class="input-question-btn-search">
+								                        <button type="button" class="btn btn-search-question" disabled="disabled">
+								                            <i class="fa fa-search"></i>
+								                        </button>
+								                    </span>
+  	  											</div>
+  	  										</div>
+  	  									</div>
+  	  								</div>
+  	  							</div>
+  	  						</div>
+							
+							<div class="box-bor MB20">
+			  	    			<h3 class="text-xanh1">
+			  	    				<a href="/forum">Câu hỏi mới nhất</a>
+			  	    			</h3>
+
+			  	    			<div class="mb16" t-foreach="questions" t-as="question">
+									<t t-call="stem_frontend_theme.stem_display_post"/>
+								</div>
+	          				</div>
+							
 			  				<div class="box-bor MB20">
 			  	    			<h3 class="text-xanh1">
 			  	    				<a href="#">Khóa học trực tuyến Miễn phí</a>
 			  	    			</h3>
 
 			  	    			<t t-foreach="online_free_courses" t-as="online_free_course">
-			  	    				<div class="MB20">
+			  	    				<div t-attf-class="MB20 {{ '' if online_free_course_index == 0 else 'course-container' }}">
 			  	    					<img t-if="not online_free_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
 	                                	<img t-if="online_free_course.image" t-attf-src="/web/image/op.course/#{online_free_course.id}/image" class="img-responsive" />
 
@@ -130,11 +153,11 @@
 				      	  							<t t-set="i" t-value="i+1"/>
 						  							<t t-if="i &lt;= 3">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -151,11 +174,11 @@
 				      	  							<t t-set="i" t-value="k+1"/>
 						  							<t t-if="k &lt;= 6 and k &gt;= 3">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -172,11 +195,11 @@
 				      	  							<t t-set="i" t-value="l+1"/>
 						  							<t t-if="l &lt;= 9 and k &gt;= 6">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -203,7 +226,7 @@
 		  	    					<a href="">Khóa học trực tuyến</a>
 		  	    				</h3>
 		  	    				<t t-foreach="online_paid_courses" t-as="online_paid_course">
-			  	    				<div class="MB20">
+			  	    				<div t-attf-class="MB20 {{ '' if online_paid_course_index == 0 else 'course-container' }}">
 			  	    					<img t-if="not online_paid_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
 	                                	<img t-if="online_paid_course.image" t-attf-src="/web/image/op.course/#{online_paid_course.id}/image" class="img-responsive" />
 
@@ -222,7 +245,7 @@
 										<p class="text-muted MB0">
 											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
 											<span class="MR10 text-danger">
-												<!-- <t t-esc="online_paid_course.price"/> -->
+												<t t-esc="online_paid_course.price"/>
 											</span>
 											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
 											<span class="MR10 text-primary">
@@ -242,13 +265,71 @@
       				<aside class="col-md-3">
       	 				<div class="box-bor">
       	 					<h3 class="text-xanh1">
-      	 						<a href="">Tin tức</a>
+      	 						<a href="/blog">Tin tức</a>
       	 					</h3>
 
       	 					<div class="js_get_posts" data-loading="true" data-posts_limit="3" data-template="stem_frontend_theme.stem_home_posts"/>
       	 				</div>
       				</aside>
     			</section>
+    			<div class="forum-post-list" style="display: none;">
+    				<t t-foreach="forum_posts" t-as="post">
+    					<div class="post-name">
+    						<t t-esc="post.id"/> - <t t-esc="post.name"/>
+    					</div>
+    				</t>
+    			</div>
+    			<div class="modal fade" id="addQuestion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+				  	<div class="modal-dialog modal-lg" role="document">
+				  		<form id="questionForm" method="POST" action="/ask">
+					    	<div class="modal-content">
+						      	<div class="modal-header" style="height: 57px;">
+						        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">X</button>
+						        	<h4 class="modal-title">
+						        		<div class="fake_reason">
+											<span>
+												<span>
+													<span class="photo_tooltip">
+														<a href="#">
+															<img class="profile_photo_img" t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" t-att-alt="user_id.name" width="50" height="50"/>
+														</a>
+													</span>
+												</span>
+												<span>
+													<span>
+														<a class="user-question" href="#">
+															<t t-esc="user_id.name"/>
+														</a>
+													</span>
+												</span>
+											</span>
+										</div>
+						        	</h4>
+						      	</div>
+					      		<div class="modal-body">
+				      				<div class="row">
+				      					<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+				      					<div class="col-md-12">
+							      			<div class="form-group cspan">
+												<label class="control-label">Tiêu đề</label><br/>
+												<input type="name" class="form-control" id="questionname" name="questionname" placeholder="Tiêu đề câu hỏi của bạn..."/>
+											</div>
+											<div class="form-group">
+											    <label for="exampleFormControlTextareal">Nội dung</label>
+											    <textarea class="form-control load_editors" id="questioncontent" placeholder="Nội dung câu hỏi của bạn..." name="questioncontent" rows="10"></textarea>
+											  </div>
+					      				</div>
+						      		</div>
+						      	</div>
+						      	<div class="modal-footer">
+						        	<button type="submit" class="btn btn-primary" form="questionForm">Đặt câu hỏi</button>
+						        	<button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+						      	</div>
+					    	</div>
+					    </form>
+				  	</div>
+				</div>
+
 			</t>
 		</template>
 
@@ -257,34 +338,76 @@
 				<section class="row">
   	  				<aside class="col-md-2">
   	  					<div class="list-group" id="menu">
+						    
 		  					<a href="/home" class="list-group-item list-group-item1 border-B1" t-if="website.user_id != user_id">
 		  						<img t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" class="img-circle MR5" t-att-alt="user_id.name" width="32"/>
 		  						<t t-esc="(len(user_id.name)&gt;25) and (user_id.name[:23]+'...') or user_id.name"/>
 		  					</a>
 		  					<a href="/home/my-blogs" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-file-text-o text-primary" aria-hidden="true"></i>
-		  						Bảng tin<span class="badge bg-pink"><t t-esc="len(posts)"/></span>
+		  						Tin tức<span class="badge bg-pink"><t t-esc="len(posts)"/></span>
 		  					</a>
+							
 		  					<a href="/home/my-mes" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-commenting-o text-danger" aria-hidden="true"></i>
-		  						Tin nhắn<span class="badge bg-pink"><t t-esc="len(my_channels)"/></span>
+		  						Thông báo<span class="badge bg-pink"><t t-esc="len(my_channels)"/></span>
 		  					</a>
-		  					<a href="/courses" class="list-group-item list-group-item1">
+                            
+							<a href="#edu-list"  data-toggle="collapse" class="list-group-item list-group-item1">
 		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học<span class="badge bg-pink"><t t-esc="len(online_free_courses)"/></span>
+		  						Đào tạo STEM
 		  					</a>
-		  					<!-- <a href="/event" class="list-group-item list-group-item1">
-		  						<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
-		  						Sự kiện<span class="badge bg-pink">14</span>
-		  					</a> -->
-		  					<a class="list-group-item list-group-item1" href="/home/my-courses">
-		  						<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
-		  						Khóa học của tôi<span class="badge bg-pink"><t t-esc="len(my_courses)"/></span>
-		  					</a>
-
+							<div class="list-group list-group-child collapse" id="edu-list">
+								<a href="/all-courses" class="list-group-item list-group-item1">
+									<i class=" fa fa-th-large text-success" aria-hidden="true"></i>
+									Khóa học<span class="badge bg-pink"><t t-esc="len(online_free_courses)"/></span>
+								</a>
+							
+								<!-- <a href="/event" class="list-group-item list-group-item1">
+									<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
+									Sự kiện<span class="badge bg-pink">14</span>
+								</a> -->
+								<a class="list-group-item list-group-item1" href="/home/my-courses">
+									<i class="fa fa-th-large text-success" aria-hidden="true"></i>
+									Khóa học của tôi<span class="badge bg-pink"><t t-esc="len(my_courses)"/></span>
+								</a>
+							    <t t-if="user_id.partner_id.employee == True">
+									<a class="list-group-item list-group-item1" href="/home/my-courses-teach">
+										<i class="fa fa-th-large text-success" aria-hidden="true"></i>
+										Lớp đào tạo<span class="badge bg-pink"></span>
+									</a>
+								</t>
+								<t t-if="user_id.partner_id.employee == False">
+									<a href="#" class="list-group-item list-group-item1" data-toggle="modal" data-target="#teacherModal">
+										<i class=" fa fa-user-plus text-warning" aria-hidden="true"></i>
+										Đăng ký giáo viên
+									</a>
+								</t>
+						    </div>
+                            <t t-if="parent_child"> 
+							    <script>
+									alert('Có phụ huynh muốn quản lý bạn. Vui lòng vào Xác nhận phụ huynh để xác nhận! ');
+								</script>
+								<a class="list-group-item list-group-item1" data-toggle="modal" data-target="#childModal">
+			  						<i class="MR10 fa fa-th-large text-info" aria-hidden="true"></i>
+			  						Xác nhận phụ huynh
+			  					</a>
+							</t>
+							<t t-if="parent_child_sm">
+								<a href="#p-list" data-toggle="collapse" class="list-group-item list-group-item1">
+			  						<i class="MR10 fa fa-user text-info" aria-hidden="true"></i>
+			  						Phụ huynh của tôi
+			  					</a>	
+								<div class="list-group list-group-child collapse" id="p-list">
+									<t t-foreach="parent_child_sm" t-as="p">
+										<a t-att-href="'/profile/%s/blogs' % (p.id)" class="list-group-item list-group-item1" t-esc="p.name" />
+									</t>
+								</div>
+							</t>
+							
 		  					<t t-if="parent">
 		  						<a href="#children-list" data-toggle="collapse" class="list-group-item list-group-item1">
-			  						<i class="MR10 fa fa-th-large text-info" aria-hidden="true"></i>
+			  						<i class="MR10 fa fa-user text-info" aria-hidden="true"></i>
 			  						Phụ huynh quản lý
 			  					</a>
 
@@ -305,21 +428,63 @@
 			  						Đăng ký phụ huynh
 			  					</a>
 		  					</t>
-
-		  					<a href="#" class="list-group-item list-group-item1" data-toggle="modal" data-target="#teacherModal">
-		  						<i class="MR10 fa fa-user-plus text-warning" aria-hidden="true"></i>
-		  						Đăng ký giáo viên
+							<a href="/home/my-friend" class="list-group-item list-group-item1">
+		  						<i class="MR10 fa fa-user text-success" aria-hidden="true"></i>
+		  						Bạn bè<span class="badge bg-pink"><t t-esc="len(my_friends)" /></span>
 		  					</a>
+							<a href="/forum" class="list-group-item list-group-item1">
+								<i class="MR10 fa fa-comments-o text-danger" aria-hidden="true"></i>
+								Tri thức STEM<!-- <span class="badge bg-pink"><t t-esc="len(forums)"/></span> -->
+							</a>	
+							<a href="/home/my-question" class="list-group-item list-group-item1">
+		  						<i class="MR10 fa fa-question-circle text-danger" aria-hidden="true"></i>
+		  						Câu hỏi của tôi<span class="badge bg-pink"><t t-esc="len(my_questions)"/></span>
+		  					</a>
+							
+							
+							
 						</div>
   	  				</aside>
 
   	  				<aside class="col-md-7">
   	  					<t t-raw="0">
-
-  	  						<!-- my courses -->
+  	  						<div class="box-bor MB20">				
+								<div class="addQuestionPrompt">
+									<span>
+										<h3>TRI THỨC STEM</h3>
+									</span>
+									<div class="form-group">
+										<input type="text" class="x-name-question form-control" placeholder="Tìm kiếm hoặc đặt câu hỏi..."/>
+										<span class="input-question-btn-search">
+											<button type="button" class="btn btn-search-question" disabled="disabled">
+												<i class="fa fa-search"></i>
+											</button>
+										</span>
+									</div>
+								</div>
+  	  						</div>
+  	  						
+							<div class="box-bor MB20">
+			  	    			<h3 class="text-xanh1">
+			  	    				<a href="/home/my-question">Câu hỏi của tôi</a>
+			  	    			</h3>
+								<t t-set="nb" t-value="0"/>
+								<t t-if="not my_questions">
+								   <p>Bạn không có câu hỏi nào!</p>
+								</t>
+								<t t-if="not my_questions">
+									<div class="mb16" t-foreach="my_questions" t-as="question">
+										<t t-if="nb &gt; 5">	
+											<t t-set="nb" t-value="nb+1"/>
+											<t t-call="stem_frontend_theme.stem_display_post"/>
+										</t>	
+									</div>
+								</t>
+	          				</div>
+							<!-- my courses -->
   	  						<div class="box-bor MB20">
 			  	    			<h3 class="text-xanh1">
-			  	    				<a href="#">Khóa học của tôi</a>
+			  	    				<a href="/home/my-courses">Khóa học của tôi</a>
 			  	    			</h3>
 
 			    				<t t-if="not my_courses">
@@ -329,7 +494,7 @@
 					            </t>
 					            <t t-if="my_courses">
 					            	<t t-foreach="my_courses" t-as="course">
-					            		<div class="MB20">
+					            		<div t-attf-class="MB20 {{ '' if course_index == 0 else 'course-container' }}">
 				  	    					<img t-if="not course['course'].image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
 			                            	<img t-if="course['course'].image" t-attf-src="/web/image/op.course/#{course['course'].id}/image" class="img-responsive" />
 
@@ -369,7 +534,7 @@
 			  	    			</h3>
 
 			  	    			<t t-foreach="online_free_courses" t-as="online_free_course">
-			  	    				<div class="MB20">
+			  	    				<div t-attf-class="MB20 {{ '' if online_free_course_index == 0 else 'course-container' }}">
 			  	    					<img t-if="not online_free_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
 	                                	<img t-if="online_free_course.image" t-attf-src="/web/image/op.course/#{online_free_course.id}/image" class="img-responsive" />
 
@@ -414,11 +579,11 @@
 				      	  							<t t-set="i" t-value="i+1"/>
 						  							<t t-if="i &lt;= 3">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -435,11 +600,11 @@
 				      	  							<t t-set="i" t-value="k+1"/>
 						  							<t t-if="k &lt;= 6 and k &gt;= 3">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -456,11 +621,11 @@
 				      	  							<t t-set="i" t-value="l+1"/>
 						  							<t t-if="l &lt;= 9 and k &gt;= 6">
 						  								<div class="col-md-4 text-center">
-									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp.course_id)}">
-									  							<img t-if="not cp.course_id.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
-			                                					<img t-if="cp.course_id.image" t-attf-src="/web/image/op.course/#{cp.course_id}/image" class="img-responsive MB5" />
+									  						<a class="box3" t-attf-href="/course-detail/#{slug(cp)}">
+									  							<img t-if="not cp.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive MB5" />
+			                                					<img t-if="cp.image" t-attf-src="/web/image/op.course/#{cp.id}/image" class="img-responsive MB5" />
 																<span class="text-den">
-																	<t t-esc="cp.course_id.name"/>
+																	<t t-esc="cp.name"/>
 																</span>
 																<span class="bt-chitiet">Chi tiết &gt;&gt;</span>
 									  						</a>
@@ -488,7 +653,7 @@
 		  	    					<a href="">Khóa học trực tuyến</a>
 		  	    				</h3>
 		  	    				<t t-foreach="online_paid_courses" t-as="online_paid_course">
-			  	    				<div class="MB20">
+			  	    				<div t-attf-class="MB20 {{ '' if online_paid_course_index == 0 else 'course-container' }}">
 			  	    					<img t-if="not online_paid_course.image" t-attf-src="/openeducat_lms/static/src/img/channel-default.jpg" class="img-responsive" />
 	                                	<img t-if="online_paid_course.image" t-attf-src="/web/image/op.course/#{online_paid_course.id}/image" class="img-responsive" />
 
@@ -507,7 +672,7 @@
 										<p class="text-muted MB0">
 											<i class="MR5 fa fa-usd" aria-hidden="true"></i>
 											<span class="MR10 text-danger">
-												<!-- <t t-esc="online_paid_course.price"/> -->
+												<t t-esc="online_paid_course.price"/>
 											</span>
 											<i class="MR5 fa fa-eye" aria-hidden="true"></i>
 											<span class="MR10 text-primary">
@@ -527,14 +692,71 @@
       				<aside class="col-md-3">
       	 				<div class="box-bor">
       	 					<h3 class="text-xanh1">
-      	 						<a href="">Tin tức</a>
+      	 						<a href="/blog">Tin tức</a>
       	 					</h3>
 
       	 					<div class="js_get_posts" data-loading="true" data-posts_limit="3" data-template="stem_frontend_theme.stem_home_posts"/>
       	 				</div>
       				</aside>
     			</section>
-
+    			<div class="forum-post-list" style="display: none;">
+    				<t t-foreach="forum_posts" t-as="post">
+    					<div class="post-name">
+    						<t t-esc="post.id"/> - <t t-esc="post.name"/>
+    					</div>
+    				</t>
+    			</div>
+    			<div class="modal fade" id="addQuestion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+				  	<div class="modal-dialog modal-lg" role="document">
+				  		<form id="questionForm" method="POST" action="/ask">
+					    	<div class="modal-content">
+						      	<div class="modal-header" style="height: 57px;">
+						        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">X</button>
+						        	<h4 class="modal-title">
+						        		<div class="fake_reason">
+											<span>
+												<span>
+													<span class="photo_tooltip">
+														<a href="#">
+															<img class="profile_photo_img" t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" t-att-alt="user_id.name" width="50" height="50"/>
+														</a>
+													</span>
+												</span>
+												<span>
+													<span>
+														<a class="user-question" href="#">
+															<t t-esc="user_id.name"/>
+														</a>
+													</span>
+												</span>
+											</span>
+										</div>
+						        	</h4>
+						      	</div>
+					      		<div class="modal-body">
+				      				<div class="row">
+				      					<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+				      					<div class="col-md-12">
+							      			<div class="form-group cspan">
+												<label class="control-label">Tiêu đề</label><br/>
+												<input type="name" class="form-control" id="questionname" name="questionname" placeholder="Tiêu đề câu hỏi của bạn..."/>
+											</div>
+											<div class="form-group">
+											    <label for="exampleFormControlTextareal">Nội dung</label>
+											    <textarea class="form-control load_editors" id="questioncontent" placeholder="Nội dung câu hỏi của bạn..." name="questioncontent" rows="10"></textarea>
+											  </div>
+					      				</div>
+						      		</div>
+						      	</div>
+						      	<div class="modal-footer">
+						        	<button type="submit" class="btn btn-primary" form="questionForm">Đặt câu hỏi</button>
+						        	<button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+						      	</div>
+					    	</div>
+					    </form>
+				  	</div>
+				</div>
+				
     			<div class="modal fade" id="parentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
 				  	<div class="modal-dialog modal-lg" role="document">
 				    	<div class="modal-content">
@@ -575,7 +797,51 @@
 				    	</div>
 				  	</div>
 				</div>
-
+                <div class="modal fade" id="childModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+				  	<div class="modal-dialog" role="document">
+				    	<div class="modal-content">
+					      	<div class="modal-header">
+					        	<button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+					        	<h4 class="modal-title">Xác nhận phụ huynh</h4>
+					      	</div>
+				      		<div class="modal-body">
+				      			<form id="childForm" method="POST" action="/confirm/parentz">
+									<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+									<input type="hidden" name="token" value="111"/>
+									<table class="table table-hover table-stripped" style="width: 100%">
+										<t t-set="number" t-value="1"/>
+										<t t-foreach="parent_child" t-as="parent">
+											<tr>     
+												<th class="action">
+													<input class="mt16" type="checkbox" t-att-name="number"  />
+													 <t t-set="number" t-value="number+1"/>
+												</th>
+												<th>
+													<a  t-att-href="'/profile/%s/blogs' % (parent.id)" class="list-group-item list-group-item1" t-esc="parent.name" style="margin-left:50px" /> 
+												</th>
+											</tr>	
+										</t>
+										
+									</table>	
+				      			</form>
+					      	</div>
+					      	<div class="modal-footer">
+					        	<button type="submit" class="btn btn-primary" form="childForm" data-toggle="modal" data-target="#Successmodal" >Submit</button>
+								
+					        	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					      	</div>
+				    	</div>
+				  	</div>
+				</div>
+				 <div class="modal fade" id="Successmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+				  	<div class="modal-dialog" role="document">
+				    	<div class="modal-content">
+					      	<div class="modal-header">
+					        	<h3 class="modal-title">Xác nhận thành công</h3>
+					      	</div>
+				    	</div>
+				  	</div>
+				</div>
 				<div class="modal fade" id="studentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
 				  	<div class="modal-dialog" role="document">
 				    	<div class="modal-content">

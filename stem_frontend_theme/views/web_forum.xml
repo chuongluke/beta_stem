@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<!-- Main template -->
+        <template id="stem_forum_header" inherit_id="website_forum.header">
+			<xpath expr="//div[@class='container']" position="replace">
+                <div class ="container">
+                   
+                </div>
+            </xpath>
+			
+            <xpath expr="//div[@class='container mt16 website_forum']" position="replace">
+			    
+                <div class ="container website_forum">
+					<section class="row">
+						<div class="col-md-2">
+							<div class="list-group" id="menu">
+								<a href="/home" class="list-group-item list-group-item1 border-B1" t-if="website.user_id != user_id">
+										<img t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" class="img-circle MR5" t-att-alt="user_id.name" width="32"/>
+										<span t-field="user_id.name"/>
+								</a>
+								<a href="/all-courses" class="list-group-item list-group-item1">
+									<i class="MR10 fa fa-th-large text-success" aria-hidden="true"></i>
+									Khóa học<span class="badge bg-pink"><t t-esc="len(all_courses)"/></span>
+								</a>
+								<a href="/current-event" class="list-group-item list-group-item1">
+									<i class="MR10 fa fa-calendar text-danger" aria-hidden="true"></i>
+									Sự kiện<span class="badge bg-pink"><t t-esc="len(events)"/></span>
+								</a>
+								<a href="#forum-list" data-toggle="collapse" class="list-group-item list-group-item1 ">
+									<i class="MR10 fa fa-comments-o text-danger" aria-hidden="true"></i>
+									Tri thức STEM<!-- <span class="badge bg-pink"><t t-esc="len(forums)"/></span> -->
+								</a>	
+
+								<div class="list-group list-group-child collapse" id="forum-list">
+									
+																
+									<a href="/forum/stem-forum-2" class="list-group-item list-group-item1">
+											<i class="MR10 fa fa-home" aria-hidden="true"></i>
+											Trang chủ<span class="badge bg-pink"></span>
+									</a>							
+									<!--
+									<a href="#sortlist" data-toggle="collapse" class="list-group-item list-group-item1">
+											<i class="MR10 fa fa-comments-o" aria-hidden="true"></i>
+											Sắp xếp
+									</a>
+									<div id= "sortlist" class= "collapse">
+										<ul>
+											<li t-att-class="sorting == 'relevancy desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='relevancy desc') }}">Trending</a>
+											</li>
+											<li t-att-class="sorting == 'name asc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='name asc') }}">Name</a>
+											</li>
+											<li t-att-class="sorting == 'create_date desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='create_date desc') }}">Newest</a>
+											</li>
+											<li t-att-class="sorting == 'write_date desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='write_date desc') }}">Activity</a>
+											</li>
+											<li t-att-class="sorting == 'child_count desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='child_count desc') }}">Most answered</a>
+											</li>
+											<li t-att-class="sorting == 'views desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='views desc') }}">Most viewed</a>
+											</li>
+											<li t-att-class="sorting == 'vote_count desc' and 'active' or None ">
+												<a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='vote_count desc') }}">Most voted</a>
+											</li>
+										</ul>
+									
+									</div>	
+									
+									<a href="#filterlist" data-toggle="collapse" class="list-group-item list-group-item1">
+											<i class="MR10 fa fa-comments-o" aria-hidden="true"></i>
+											Bộ lọc
+									</a>
+									
+									<div id= "filterlist" class= "collapse">
+										<ul>
+											 <li t-att-class="filters == 'all' and 'active' or None ">
+												<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='all')">All</a>
+											</li>
+											<li t-att-class="filters == 'unanswered' and 'active' or None ">
+												<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='unanswered')">Unanswered</a>
+											</li>
+											<li t-if="uid" t-att-class="filters == 'followed' and 'active' or None ">
+												<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='followed')">Followed</a>
+											</li>
+											
+										</ul>
+									
+									</div>	
+									-->
+									<a class="list-group-item list-group-item1" t-attf-href="/forum/#{ slug(forum) }/users">
+											<i class="MR10 fa fa-users" aria-hidden="true"></i>
+											Người dùng
+									</a>
+									<a class="list-group-item list-group-item1" t-attf-href="/forum/#{ slug(forum) }/tag">
+											<i class="MR10 fa fa-tags" aria-hidden="true"></i>
+											Thẻ
+									</a>
+									<a class="list-group-item list-group-item1 border-B1" t-attf-href="/forum/#{ slug(forum) }/badge">
+											<i class="MR10 fa fa-trophy" aria-hidden="true"></i>
+											Huy Hiệu
+									</a>
+									<a class="list-group-item list-group-item1" t-attf-href="/forum/#{ slug(forum) }/user/#{ uid }">
+											<i class="MR10 fa fa-book" aria-hidden="true"></i>
+											Hồ sơ của bạn
+									</a>
+								</div>
+							</div>
+							
+						</div>
+						<div  class="col-md-10">
+								<div id="wrap" class="container">
+									<div class="row mb16">
+										<div class="col-sm-9">
+										    <t t-if="question_ids">
+												<div class="box-bor MB20">
+												    <div>
+														<h3>Tìm kiếm</h3>
+													</div>
+													<div class="form-group">
+														<input type="text" class="x-name-question form-control" placeholder="Tìm kiếm hoặc đặt câu hỏi..."/>
+														<span class="input-question-btn-search">
+															<button type="button" class="btn btn-search-question" disabled="disabled">
+																<i class="fa fa-search"></i>
+															</button>
+														</span>
+													</div>				
+												</div>
+												<div class="forum-post-list" style="display: none;">
+													<t t-foreach="question_ids" t-as="post">
+														<div class="post-name">
+															<t t-esc="post.id"/> - <t t-esc="post.name"/>
+														</div>
+													</t>
+												</div>
+												<div class="modal fade" id="addQuestion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+													<div class="modal-dialog modal-lg" role="document">
+														<form id="questionForm" method="POST" action="/ask">
+															<div class="modal-content">
+																<div class="modal-header" style="height: 57px;">
+																	<button type="button" class="close" data-dismiss="modal" aria-label="Close">X</button>
+																	<h4 class="modal-title">
+																		<div class="fake_reason">
+																			<span>
+																				<span>
+																					<span class="photo_tooltip">
+																						<a href="#">
+																							<img class="profile_photo_img" t-att-src="user_id.image_small and ('data:image/png;base64,' + user_id.image_small) or '/web/static/src/img/placeholder.png'" t-att-alt="user_id.name" width="50" height="50"/>
+																						</a>
+																					</span>
+																				</span>
+																				<span>
+																					<span>
+																						<a class="user-question" href="#">
+																							<t t-esc="user_id.name"/>
+																						</a>
+																					</span>
+																				</span>
+																			</span>
+																		</div>
+																	</h4>
+																</div>
+																<div class="modal-body">
+																	<div class="row">
+																		<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+																		<div class="col-md-12">
+																			<div class="form-group cspan">
+																				<label class="control-label">Tiêu đề</label><br/>
+																				<input type="name" class="form-control" id="questionname" name="questionname" placeholder="Tiêu đề câu hỏi của bạn..."/>
+																			</div>
+																			<div class="form-group">
+																				<label for="exampleFormControlTextareal">Nội dung</label>
+																				<textarea class="form-control load_editors" id="questioncontent" placeholder="Nội dung câu hỏi của bạn..." name="questioncontent" rows="10"></textarea>
+																			  </div>
+																		</div>
+																	</div>
+																</div>
+																<div class="modal-footer">
+																	<button type="submit" class="btn btn-primary" form="questionForm">Đặt câu hỏi</button>
+																	<button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+																</div>
+															</div>
+														</form>
+													</div>
+												</div>
+												
+												
+											
+											</t>
+											
+											<div t-foreach="notifications or []" t-as="notification" class="alert alert-success alert-dismissable">
+												<button type="button" class="close notification_close" t-att-id="notification.id" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
+												<div t-field="notification.body"/>
+												<a t-attf-href="/forum/#{ slug(forum) }/user/#{ user.id }#badges" class="fa fa-arrow-right">View Your Badges</a>
+											</div>
+											<div t-if="not validation_email_sent and not is_public_user and user.karma == 0" class="alert alert-danger alert-dismissable">
+												<button type="button" class="close validation_email_close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
+												<div>
+													<p>
+														It appears your email has not been verified.
+														<a class="send_validation_email" href="#" t-att-forum-id="forum.id">Click here to send a verification email allowing you to participate to the forum.</a>
+													</p>
+												</div>
+											</div>
+											<div t-if="validation_email_done" class="alert alert-success alert-dismissable">
+												<button type="button" class="close validated_email_close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
+												<div>
+													<p>Congratulations! Your email has just been validated. You may now participate to our forums.</p>
+												</div>
+											</div>
+											<t t-raw="0"/>
+										</div>
+										<div class="col-sm-3" id="right-column">
+										
+										     <!---
+										    <div>
+												<form class="navbar-form mb16" style="padding:0px 0px;" role="search" t-attf-action="/forum/#{ slug(forum) }" method="get">
+													<t t-call="website.website_search_box"/>
+													
+													
+												</form>
+											</div>
+											-->
+											<div t-if="not header.get('ask_hide')" t-attf-class="btn-group btn-block mb16 #{(user.karma &lt; forum.karma_ask) and not is_public_user and 'karma_required' or ''}" t-attf-data-karma="#{forum.karma_ask}">
+												<t t-set="multi_type" t-value="(forum.allow_link and forum.allow_question) or (forum.allow_link and forum.allow_discussion) or (forum.allow_question and forum.allow_discussion)"/>
+												<a type="button"  t-attf-class="btn btn-primary btn-lg #{'col-sm-10' if multi_type else 'col-sm-12'}" t-attf-href="/forum/#{slug(forum)}/ask?post_type=#{forum.default_post_type}">
+													<t t-if="forum.default_post_type == 'question'">Hỏi câu hỏi</t>
+													<t t-if="forum.default_post_type == 'link'">Gửi liên kết</t>
+													<t t-if="forum.default_post_type == 'discussion'">Bài thảo luận</t>
+													
+												</a>
+												<t t-if="multi_type">
+													<button type="button" class="btn btn-primary btn-lg col-sm-2 dropdown-toggle" data-toggle="dropdown">
+														<span class="caret"></span>
+														<span class="sr-only">Chọn bài viết</span>
+													</button>
+													
+													<ul class="dropdown-menu" role="menu">
+														<li t-if="forum.allow_question"><a t-attf-href="/forum/#{slug(forum)}/ask?post_type=question">Hỏi câu hỏi</a></li>
+														<li t-if="forum.allow_link"><a t-attf-href="/forum/#{slug(forum)}/ask?post_type=link">Gửi liên kết</a></li>
+														<li t-if="forum.allow_discussion"><a t-attf-href="/forum/#{slug(forum)}/ask?post_type=discussion">Bài thảo luận</a></li>
+													</ul>
+												</t>
+											</div>
+											
+											<div class="panel panel-default" id="about_forum">
+												<div class="panel-heading">
+													<h3 class="panel-title">About This Community</h3>
+												</div>
+												<div class="panel-body">
+													<span t-field="forum.description"/>
+													<a t-if="not header.get('is_guidelines')" t-attf-href="/forum/#{slug(forum)}/faq" class="fa fa-arrow-right"> Read Guidelines</a>
+													<a t-if="header.get('is_guidelines')" t-attf-href="/forum/#{slug(forum)}" class="fa fa-arrow-right"> Back to <span t-field="forum.name"/></a>
+												</div>
+											</div>
+											<div class="panel panel-default" id="moderation_tools" t-if="user.karma>=forum.karma_moderate">
+												<div class="panel-heading">
+													<h3 class="panel-title">Công cụ kiểm duyệt</h3>
+												</div>
+												<div class="panel-body text-center">
+													<a t-attf-href="/forum/#{slug(forum)}/validation_queue"><strong><t t-esc="forum.count_posts_waiting_validation"/></strong> waiting for validation</a>
+													<hr style="margin-top:4px;margin-bottom:0;padding-bottom:4px;" />
+													<a t-attf-href="/forum/#{slug(forum)}/flagged_queue"><strong id="count_flagged_posts"><t t-esc="forum.count_flagged_posts"/></strong> post<t t-if="forum.count_flagged_posts&gt;1">s</t> flagged</a>
+												</div>
+											</div>
+											<div t-if="header.get('question_data')">
+												<div class="panel panel-default">
+													<div class="panel-heading text-center">
+														<h3 class="panel-title">Công cụ hỏi</h3>
+													</div>
+													<div class="panel-body text-center">
+														<t t-call="website_mail.follow"><t t-set="object" t-value="question"/></t>
+														<div class="mt8">
+															<strong><t t-raw="len(question.message_follower_ids)"/></strong> follower(s)
+														</div>
+													</div>
+													<div class="panel-heading text-center">
+														<h3 class="panel-title ">Thống kê</h3>
+													</div>
+													<div class="panel-body">
+														<table class="table">
+															<thead><tr><td> Asked: <strong><span t-field="question.create_date" t-options='{"format":"short"}'/></strong></td></tr></thead>
+															<tr><td> Seen: <strong><t t-raw="question.views"/></strong>
+																<span t-if="question.views&gt;1"> times</span>
+																<span t-if="question.views&lt;=1"> time</span>
+															</td></tr>
+															<tr><td> Last updated: <strong><span t-field="question.write_date" t-options='{"format":"short"}'/></strong></td></tr>
+														</table>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="oe_structure"/>
+							
+						</div>
+					</section>
+                </div>
+				
+            </xpath>
+			
+			
+        </template>
+		
+		<template id="stem_forum_index" inherit_id="website_forum.forum_index">
+			<xpath expr="//h2[@class='page-header mt0']" position="replace">
+				<h2 class="page-header mt0" style="margin-left:20px;">
+				    
+					<t t-esc="question_count" />
+					<span t-if="post_type not in ('link','question','discussion')" style="display: initial;"> Bài viết </span>
+					<span t-if="post_type == 'question'" style="display: initial;"> Câu hỏi</span>
+					<span t-if="post_type == 'link'" style="display: initial;"> Liên kết </span>
+					<span t-if="post_type == 'discussion'" style="display: initial;">Thảo luận</span>
+					
+					<small class="dropdown" style="margin-left: 20px;">
+					     Sắp xếp: 
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<t t-if="sorting == 'relevancy desc'"> theo xu huớng</t>
+							<t t-if="sorting == 'name asc'"> theo tên</t>
+							<t t-if="sorting == 'write_date desc'"> theo hoạt động</t>
+							<t t-if="sorting == 'create_date desc'"> mới nhất</t>
+							<t t-if="sorting == 'child_count desc'"> nhiều trả lời nhất</t>
+							<t t-if="sorting == 'views desc'"> nhiều lượt xem nhất</t>
+							<t t-if="sorting == 'vote_count desc'"> nhiều bình chọn nhất</t>
+							<b class="caret"/>
+						</a>
+						<ul class="dropdown-menu">
+							<!--<li class="dropdown-header">Sort by</li>-->
+							<li t-att-class="sorting == 'relevancy desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='relevancy desc')">Xu huớng</a>
+							</li>
+							<li t-att-class="sorting == 'name desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='name asc')">Tên</a>
+							</li>
+							<li t-att-class="sorting == 'write_date desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='write_date desc')">Hoạt động</a>
+							</li>
+							<li t-att-class="sorting == 'create_date desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='create_date desc')">Mới nhất</a>
+							</li>
+							<li t-att-class="sorting == 'child_count desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='child_count desc')">Số trả lời</a>
+							</li>
+							<li t-att-class="sorting == 'views desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='views desc')">Số lượt xem</a>
+							</li>
+							<li t-att-class="sorting == 'vote_count desc' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'filters', sorting='vote_count desc')">Số bình chọn</a>
+							</li>
+						</ul>
+							
+					</small>
+					
+					<small class="dropdown" t-if="filters in ('all', 'unanswered','followed', 'tag')" style="margin-left: 20px;">
+					     Bộ lọc: 
+						 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<t t-if="filters in ('all','tag')"> Tất cả</t>
+							<t t-if="filters == 'unanswered'"> Chưa trả lời</t>
+							<t t-if="filters == 'followed'"> Theo dõi</t>
+							
+							<b class="caret" style="margin-right: 20px;"/>
+						 </a>
+						 
+						 <t t-if="tag" > 
+						    Thẻ:
+							<b t-field="tag.name" style="display: initial;"/>
+						 </t>
+						
+						 <ul class="dropdown-menu">
+							
+							<li t-att-class="filters == 'all' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='all')">Tất cả</a>
+							</li>
+							<li t-att-class="filters == 'unanswered' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='unanswered')">Chưa trả lời</a>
+							</li>
+							<li t-if="uid" t-att-class="filters == 'followed' and 'active' or None ">
+								<a t-att-href="url_for('') + '?' + keep_query( 'search', 'sorting', filters='followed')">Theo dõi</a>
+							</li>
+							<!--
+							<li t-if="tag" class="dropdown-header">Tags</li>
+							<li t-if="tag" t-att-class="tag and 'active' or None ">
+								<a href=""><t t-esc="tag.name"/></a>
+							</li>
+							-->
+						</ul>
+					</small>
+				</h2>
+			</xpath>
+		     
+			<xpath expr="//div[@class='mb16']" position="replace"> 
+				<div class="box-bor">
+					<div t-foreach="question_ids" t-as="question" class="mb16">
+						<t t-call="website_forum.display_post"/>
+					</div>
+				</div>
+			</xpath>
+		</template>
+				
+		<!-- Show a post in list -->
+		<template id="stem_display_post" inherit_id="website_forum.display_post">
+			<xpath expr="//div[@class='question']" position="replace">
+				<div class="question box-bor MB20">
+					<div class="pull-left">
+						<t t-call="website_forum.vote">
+							<t t-set="post" t-value="question"/>
+						</t>
+					</div>
+					<t t-call="website_forum.display_post_question_block"/>
+				</div>
+			</xpath>	
+		</template>
+		
+		
+
+		<!---Question-->
+		<template id="stem_post_description_full" inherit_id="website_forum.post_description_full">
+			<xpath expr="//div[@t-att-data-id='question.id']" position="after">
+			    <div>
+				    <div class="mb16 mt8"> </div>
+					<h3> <t t-esc="len(question.child_ids)"/> 
+						<t t-if="question.post_type == 'question'">
+							Trả lời
+						</t>
+						<t t-if="question.post_type != 'question'">
+							Bình luận
+						</t>
+						
+					</h3>
+				</div>
+			    
+			</xpath>	
+		</template>
+		
+		<!-- Post answer-->
+		<template id="stem_post_answers" inherit_id="website_forum.post_answers">
+			<xpath expr="//div[@t-attf-class='forum_answer']" position="before">
+			    <div class="box-bor-1">
+				</div>
+			    
+			</xpath>	
+		</template>
+		
+		<!-- Users-->
+		<template id="stem_users" inherit_id="website_forum.users">
+			<xpath expr="//div[@class='col-sm-4']" position="replace">
+			    
+				<div t-foreach="row_users" t-as="user" class="col-sm-4 box-bor">
+					<img class="pull-left img img-circle o_forum_avatar" t-attf-src="/forum/user/#{user.id}/avatar"/>
+					<div>
+						<a t-attf-href="/forum/#{slug(forum)}/user/#{user.id}" t-field="user.name"/>
+						<t t-if="user.country_id">
+							<span t-field="user.country_id.image" t-options='{"widget": "image", "class": "country_flag"}' class='ml4'/>
+						</t>
+						<br/>
+						<b>Điểm: <t t-esc="user.karma"/></b>
+						<t t-raw="separator"/>
+						<div>
+								<b style="padding-left:50px"> Huy hiệu:</b>
+							<span>
+								<span class="fa fa-circle badge-gold"/>
+								<span t-esc="user.gold_badge" class="ml4"/>
+								<span class="fa fa-circle badge-silver ml4" />
+								<span t-esc="user.silver_badge" class="ml4" />
+								<span class="fa fa-circle badge-bronze ml4" />
+								<span t-esc="user.bronze_badge" class="ml4" />
+							</span>
+						</div>
+						<t t-raw="0"/>
+					</div>
+				</div>
+			    
+			</xpath>	
+		</template>
+		
+		<!-- Users Detail-->
+		<template id="stem_user_detail_full" inherit_id="website_forum.user_detail_full">
+			<xpath expr="//a[@href='#favourite_question']" position="replace">
+			    <a href="#favourite_question" data-toggle="tab"><t t-esc="len(favourite)"/> Fav. Ques.</a>
+			</xpath>
+			<xpath expr="//a[@href='#followed_question']" position="replace">
+			    <a href="#followed_question" data-toggle="tab"><t t-esc="len(followed)"/> Fol. Ques.</a>
+			</xpath>
+		</template>
+		
+		<!-- Edit Profile-->
+		<template id="stem_edit_profile" inherit_id="website_forum.edit_profile">
+		    <xpath expr="//h3" position="replace">
+				<h2 class="ml250 mb16 c-xanh-1 "> Edit Your Profile </h2>		
+			</xpath>
+			<xpath expr="//div[@class='row']" position="replace">
+				<form t-attf-action="/forum/#{slug(forum)}/user/#{slug(user)}/saved" method="post" role="form" class="form-horizontal js_website_submit_form" enctype="multipart/form-data">
+					<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+					<input type="file" class="hidden o_forum_file_upload" name="ufile" accept="image/*"/>
+					<div class="col-md-2">
+						<a href="#" class="o_forum_profile_pic_edit">
+							<i class="fa fa-pencil fa-1g pull-left" title="Edit"></i>
+						</a>
+						<a href="#">
+							<i class="fa fa-trash-o fa-1g pull-right o_forum_profile_pic_clear" title="Clear"></i>
+						</a>
+						<img class="img img-responsive img-circle o_forum_avatar_img" t-attf-src="/forum/user/#{user.id}/avatar"/>
+					</div>
+					<div class="col-md-10">
+						<input name="user_id" t-att-value="user.id" type="hidden"/>
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="user_name">Real name</label>
+							<div class="col-md-8">
+								<input type="text" class="form-control" name="name" id="user_name" required="True" t-attf-value="#{user.name}"/>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="user_website_published" t-if="user.id == uid">Public profile</label>
+							<div class="col-md-8" t-if="user.id == uid">
+								<input type="checkbox" class="mt8" name="website_published" id="user_website_published" value="True" t-if="not user.website_published"/>
+								<input type="checkbox" class="mt8" name="website_published" id="user_website_published" value="True" checked="checked" t-if="user.website_published"/>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="user_website">Website</label>
+							<div class="col-md-8">
+								<input type="text" class="form-control" name="website" id="user_website" t-attf-value="#{user.partner_id.website or ''}"/>
+							</div>
+						</div>
+						<div class="form-group">
+							<div t-if="email_required" class="alert alert-danger alert-dismissable oe_forum_email_required">
+								<button type="button" class="close" data-dismiss="alert">x</button>
+								<p>Please enter a valid email address in order to receive notifications from answers or comments.</p>
+							</div>
+							<label class="col-md-3 control-label " for="user_email">Email</label>
+							<div class="col-md-8">
+								<input type="text" class="form-control" name="email" id="user_email" required="True" t-attf-value="#{user.partner_id.email}"/>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="user_city">City</label>
+							<div class="col-md-8">
+								<input type="text" class="form-control" name="city" id="user_city" t-attf-value="#{user.partner_id.city or ''}"/>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-md-3 control-label">Country</label>
+							<div class="col-md-8">
+								<select class="form-control" name="country">
+									<option value="">Country...</option>
+									<t t-foreach="countries or []" t-as="country">
+										<option t-att-value="country.id" t-att-selected="country.id == user.partner_id.country_id.id"><t t-esc="country.name"/></option>
+									</t>
+								 </select>
+							</div>
+						</div>
+						<!--Note: using website_description fiels instead of using commnt firld of partner-->
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="description">Biography</label>
+							<div class="col-md-8">
+								<textarea name="description" id="description" style="min-height: 100px" required="True"
+									class="form-control load_editor"><t t-esc="user.partner_id.website_description"/></textarea>
+							</div>
+						</div>
+						<div class="col-sm-offset-2 col-md-2 ml180 mb20" >
+							<button type="submit" class="btn btn-primary btn-lg">Update</button>
+						</div>
+					</div>
+					<script type="text/javascript">
+						$('.o_forum_profile_pic_edit').on('click', function(ev) {
+							ev.preventDefault();
+							$(this).closest('form').find('.o_forum_file_upload').trigger('click');
+						});
+
+						$('.o_forum_file_upload').on('change', function() {
+							if (this.files.length) {
+								var $form = $(this).closest('form');
+								var reader = new window.FileReader();
+								reader.onload = function(ev) {
+									$form.find('.o_forum_avatar_img').attr('src', ev.target.result);
+								};
+								reader.readAsDataURL(this.files[0]);
+								$form.find('#forum_clear_image').remove();
+							}
+						});
+
+						$('.o_forum_profile_pic_clear').click(function() {
+							var $form = $(this).closest('form');
+							$form.find('.o_forum_avatar_img').attr("src", "/web/static/src/img/placeholder.png");
+							$form.append($('<input/>', {
+								name: 'clear_image',
+								id: 'forum_clear_image',
+								type: 'hidden',
+							}));
+						});
+
+					</script>
+				</form>
+			</xpath>
+		</template>
+		
+		
+    </data>
+</odoo>

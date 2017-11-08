@@ -4,8 +4,8 @@
         <template id="assets_frontend" inherit_id="website.assets_frontend">
             <xpath expr="." position="inside">
                 <link rel="stylesheet" type="text/css" href="/stem_frontend_theme/static/src/css/datatables.min.css"/>
-                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/datatables.min.js"></script>
-            	<link rel="stylesheet" 
+                
+                <link rel="stylesheet" 
                     type="text/css"
                     href="/stem_frontend_theme/static/src/css/font-face.css"/>
                 <link rel="stylesheet" 
@@ -20,12 +20,17 @@
                 <link rel="stylesheet" 
                     type="text/css"
                     href="/stem_frontend_theme/static/src/css/main.css"/>
-                <!-- <script type="text/javascript" src="/stem_frontend_theme/static/src/js/setting_menu.js"></script> -->
-                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/parent.js"></script>
-                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/menu.js"></script>
+                <link rel="stylesheet" 
+                    type="text/css"
+                    href="/stem_frontend_theme/static/src/css/typeahead.css"/>
+                
+                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/datatables.min.js"></script>
+                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/typeahead.bundle.js"></script>
                 <script type="text/javascript" src="/stem_frontend_theme/static/src/js/datepicker.js"></script>
+                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/parent.js"></script>
+                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/attachment.js"></script>
+                <script type="text/javascript" src="/stem_frontend_theme/static/src/js/menu.js"></script>
                 <script type="text/javascript" src="/stem_frontend_theme/static/src/js/main.js"></script>
-                <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
             </xpath>
         </template>
     </data>

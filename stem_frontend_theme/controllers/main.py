@@ -1,16 +1,35 @@
 # -*- coding: utf-8 -*-
 import json
+import uuid
 import werkzeug.utils
 import base64
 import logging
 import random
+import requests
+import werkzeug.exceptions
+import werkzeug.urls
+import werkzeug.wrappers
+import os
+import zipfile
+import StringIO
+import functools
+import mimetypes
+
 from datetime import datetime, timedelta
 
-from odoo import _, http, fields
+from odoo import _, http, fields,modules, SUPERUSER_ID, tools
 from odoo.addons.website.controllers.main import Website
+from odoo.addons.website_forum.controllers.main import WebsiteForum
 from odoo.addons.web.controllers.main import Home
+from odoo.addons.website.models.website import slug
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome
-
+from odoo.addons.web.controllers.main import binary_content
+from odoo.addons.web.controllers.main import content_disposition
+from odoo.addons import mail
+from odoo.addons import web
+from odoo.http import request
+PPG = 2
+PPR = 4
 _logger = logging.getLogger(__name__)
 
 try:
@@ -21,7 +40,15 @@ except ImportError:
 class Stem(http.Controller):
     def get_menu_data(self):
         parent = http.request.env['op.parent'].sudo().search([('name', '=', http.request.env.user.partner_id.id)], limit=1)
-
+        
+        student = http.request.env['op.student'].sudo().search([('partner_id', '=', http.request.env.user.partner_id.id)], limit=1)
+        student_id = [x.id for x in student]
+        parent_child_sm= http.request.env['op.parent'].sudo().search([('student_ids.id', 'in' ,student_id)])
+        parent_child_sm_id=[x.name for x in parent_child_sm]
+        parent_child_sm_id_2=[x.id for x in parent_child_sm_id]
+        parent_child_rg = http.request.env['stem.register_parent'].sudo().search([('student_child_id', 'in' ,student_id) ,('parent_id', 'not in' ,parent_child_sm_id_2)])
+        parent_child = [x.parent_id for x in parent_child_rg]
+                                                                                 
         online_free_courses = http.request.env['op.course'].sudo().search([('online_course', '=', True), ('type', '=', 'free')], limit=3, order='create_date desc')
 
         online_paid_courses = http.request.env['op.course'].sudo().search(                
@@ -38,17 +65,53 @@ class Stem(http.Controller):
             my_courses = self.my_course_details(enrollments)
 
         forums = http.request.env['forum.forum'].sudo().search([])
+        forum = http.request.env['forum.forum'].sudo().search([('id', '=', 2)])
 
         posts = http.request.env['blog.post'].sudo().search([('website_published', '=', True)])
 
+        all_courses = http.request.env['op.course'].sudo().search([])
+        now = datetime.now()
+        now1 = datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
+        current_events = http.request.env['event.event'].sudo().search([('date_begin','<',now1), ('date_end','>',now1)])
+        events = http.request.env['event.event'].sudo().search([])
+        #course_porpular = http.request.env['rec.cu.by.predef'].sudo().search([])
+        course_porpular = []
+
+        course_porpular_ids = [x.course_id.id for x in course_porpular]
+
+        porpular_courses = http.request.env['op.course'].sudo().search([('id', 'in', course_porpular_ids)], limit=9, order='create_date desc')
+        
+        forum_posts = http.request.env['forum.post'].sudo().search([('parent_id', '=', False),('forum_id', '=', 2)], order='create_date desc')
+        
+        my_question = request.env['forum.post'].search([
+                ('parent_id', '=', False),
+                ('forum_id', '=', 2), ('create_uid', '=', http.request.env.user.id)],order='relevancy desc')
+                
+        questions = request.env['forum.post'].search([
+                ('parent_id', '=', False),
+                ('forum_id', '=', 2)], limit=5,order='create_date desc')
+        
+        my_friends = []
         return {
+            'needaction_inbox_counterz': http.request.env['res.partner'].get_needaction_count(),
             'parent': parent,
             'online_free_courses': online_free_courses,
             'my_channels': my_channels,
             'my_courses': my_courses,
+            'my_questions':my_question,
+            'questions':questions,
             'forums': forums,
+            'forum': forum,
             'posts': posts,
-            'online_paid_courses': online_paid_courses
+            'online_paid_courses': online_paid_courses, 
+            'course_porpular': porpular_courses,
+            'events': events, 
+            'all_courses': all_courses,
+            'forum_posts': forum_posts,
+            'parent_child': parent_child,
+            'parent_child_sm':parent_child_sm_id,
+            'current_events': current_events, 
+            'my_friends': my_friends, 
         }
 
     @http.route('/home', auth='user', website=True)
@@ -59,9 +122,7 @@ class Stem(http.Controller):
         online_free_courses = http.request.env['op.course'].sudo().search(
             [('online_course', '=', True), ('type', '=', 'free')], limit=3, order='create_date desc')
         data['online_free_courses'] = online_free_courses
-        #populor course
-        course_porpular = http.request.env['stem.rec_cu_by_predef'].sudo().search([('user_id', '=', http.request.env.uid)], limit=9, order='computed_date desc')
-        data['course_porpular'] = course_porpular
+        
 
         #my courses
         enrollments = http.request.env['op.course.enrollment'].sudo().search(
@@ -73,11 +134,47 @@ class Stem(http.Controller):
         
         return http.request.render('stem_frontend_theme.stem_profile', data)
 
+    @http.route(['/all-courses',
+                 '/all-courses/page/<int:page>'
+    ], type='http', auth="public", website=True)
+    def view_all_courses(self, search='', page=1, ppg=False, **post):
+        data = self.get_menu_data()
+        if ppg:
+            try:
+                ppg = int(ppg)
+            except ValueError:
+                ppg = 5
+            post["ppg"] = ppg
+        else:
+            ppg = 5
+
+        url = '/all-courses'
+        pager = request.website.pager(url=url, total=len(data['all_courses']), page=page,
+                                      step=ppg, scope=7,
+                                      url_args=post)
+        
+        course_ids = request.env['op.course'].sudo().search([],
+                limit=ppg, offset=pager['offset'])
+        data['course_ids']= course_ids 
+        data['pager']= pager        
+        return http.request.render('stem_frontend_theme.stem_all_courses', data)
+
     @http.route('/googleb90fcbde0047b306.html', auth='public')
     def google_html(self):
         return 'google-site-verification: googleb90fcbde0047b306.html'
 
+    @http.route('/blog', auth='public',website=True)
+    def view_blog(self):
+        return http.request.redirect('/blog/cong-ong-stem-1')
 
+    @http.route('/forum', auth='public',website=True)
+    def view_forum(self):
+        return http.request.redirect('/forum/stem-forum-2')
+
+    @http.route('/courses', auth='public',website=True)
+    def view_courses(self):
+        return http.request.redirect('/all-courses')
+    
     @http.route('/home/my-courses', auth='user', website=True)
     def my_courses(self, **kw):
         data = self.get_menu_data()
@@ -221,6 +318,28 @@ class Stem(http.Controller):
             'message': message,
             'type': alert_type
         })
+
+    
+    @http.route('/confirm/parentz', type='http', auth='user', method=['POST'],website=True)
+    def confirm_parentz(self, **kw):
+        token = kw.get('token')
+        if token:
+            student = http.request.env['op.student'].sudo().search([('partner_id', '=', http.request.env.user.partner_id.id)], limit=1)
+            student_id = [x.id for x in student]
+            parent_child_sm= http.request.env['op.parent'].sudo().search([('student_ids.id', 'in' ,student_id)])
+            parent_child_sm_id=[x.name for x in parent_child_sm]
+            parent_child_sm_id_2=[x.id for x in parent_child_sm_id]
+            parent_child_rg = http.request.env['stem.register_parent'].sudo().search([('student_child_id', 'in' ,student_id) ,('parent_id', 'not in' ,parent_child_sm_id_2)])
+            for x in range(1, len(parent_child_rg)+1):
+                val = kw.get(str(x))
+                if val:       
+                    http.request.env['op.parent'].sudo().create({
+                            'name': parent_child_rg[x-1].parent_id.id,
+                            'student_ids': [(6, 0,student_id)]
+                        })
+            
+            parent_child_rg.unlink()
+        return http.request.redirect('/home')
             
         
     @http.route('/home/my-blogs', auth='user', website=True)
@@ -304,9 +423,11 @@ class Stem(http.Controller):
 
     @http.route('/home/get_messages_by_channel', auth='public', type='http', csrf=False, website=True)
     def get_messages_by_channel(self, **kw):
+        data = self.get_menu_data()
         channel_id = int(kw.get('channel_id'))
 
         messages = http.request.env['mail.message'].sudo().search([('res_id', '=', channel_id), ('model', '=', 'mail.channel')], order='create_date desc')
+        data['messages']=messages
         #result = []
         # for m in messages:
         #     result.append({
@@ -315,9 +436,7 @@ class Stem(http.Controller):
         #         'author_name': m.author_id.name
         #     })
 
-        return http.request.render('stem_frontend_theme.stem_my_mes_detail',  {
-            'messages': messages
-        })
+        return http.request.render('stem_frontend_theme.stem_my_mes_detail',  data)
 
 
     @http.route(['''/course/register-course/<model("op.course"):course>'''],
@@ -358,28 +477,436 @@ class Stem(http.Controller):
 
 
 
+    @http.route(['/searchz', '/searchz/page/<int:page>'], type='http', auth="public", website=True)
+    def searchz(self, search='', page=0, ppg=False, **post):
+        data = self.get_menu_data()
+        if ppg:
+            try:
+                ppg = int(ppg)
+            except ValueError:
+                ppg = PPG
+            post["ppg"] = ppg
+        else:
+            ppg = PPG
 
+        url = '/searchz'
+
+        domain_cource_default = [('online_course', '=', True)]
+
+        if search:
+            post["search"] = search
+
+            for srch in search.split(" "):
+                domain_cource_default += [('name', 'ilike', srch)]
+
+        course_domain = domain_cource_default + [('state', '=', 'open')]
+
+        
+
+        domain_post_default = [('website_published', '=', True)]
+
+        if search:
+            post["search"] = search
+
+            for srch in search.split(" "):
+                domain_post_default += [('name', 'ilike', srch)]
+
+        domain_partner_default = []
+
+        if search:
+            post["search"] = search
+
+            for srch in search.split(" "):
+                domain_partner_default += [('name', 'ilike', srch)]
+
+        posts = http.request.env['blog.post'].sudo().search(domain_post_default)
+        courses = http.request.env['op.course'].sudo().search(course_domain)
+        partners = http.request.env['res.partner'].sudo().search(domain_partner_default)
+        total_count_courses = len(courses)
+        total_count_posts =  len(posts)
+        total_count_partners = len(partners)
+
+        pager_courses = http.request.website.pager(
+            url=url, total=total_count_courses, page=page, step=ppg, scope=7,
+            url_args=post)
+
+        pager_posts = http.request.website.pager(
+            url=url, total=total_count_posts, page=page, step=ppg, scope=7,
+            url_args=post)
+
+        pager_partners = http.request.website.pager(
+            url=url, total=total_count_partners, page=page, step=ppg, scope=7,
+            url_args=post)
+        
+
+        all_search_idc = [x.id for x in courses]
+        all_search_idp = [x.id for x in posts]
+        all_search_idpn = [x.id for x in partners]
+        all_search_courses = http.request.env['op.course'].sudo().search([('id', 'in', all_search_idc)], limit=ppg, offset=pager_courses['offset'])
+        all_search_posts = http.request.env['blog.post'].sudo().search([('id', 'in', all_search_idp)], limit=ppg, offset=pager_posts['offset'])
+        all_search_partners = http.request.env['res.partner'].sudo().search([('id', 'in', all_search_idpn)], limit=ppg, offset=pager_partners['offset'])
+
+        values = {
+            'search': search,
+            'pager': pager_courses,
+            'pager_posts': pager_posts,
+            'total_count_courses': total_count_courses,
+            'all_search_courses': all_search_courses,
+            'total_count_posts': total_count_posts,
+            'all_search_posts': all_search_posts,
+            'total_count_partners': total_count_partners,
+            'all_search_partners': all_search_partners,
+            'rows': 3
+        }
+        
+        data.update(values)
+
+        return http.request.render("stem_frontend_theme.search_results", data)
+
+
+    @http.route('/home/my-courses-teach', type='http', auth="public", website=True)
+    def my_courses_teach(self, page=0, ppg=False, **post):
+        data = self.get_menu_data()
+        if ppg:
+            try:
+                ppg = int(ppg)
+            except ValueError:
+                ppg = 4
+            post["ppg"] = ppg
+        else:
+            ppg = 4
+
+        url = '/home/my-courses-teach'
+
+        partner_id = http.request.env.user.partner_id.id;
+        facultys = http.request.env['op.faculty'].sudo().search([('partner_id', '=', partner_id)])
+
+        all_faculty_id = [x.id for x in facultys]
+
+        course_domain = [('online_course', '=', True), ('state', '=', 'open'), ('faculty_ids', 'in', all_faculty_id)]
+
+        courses = http.request.env['op.course'].sudo().search(course_domain)
+        total_count = len(courses)
+
+        pager = http.request.website.pager(
+            url=url, total=total_count, page=page, step=ppg, scope=7,
+            url_args=post)
+        
+
+        all_courses_id = [x.id for x in courses]
+        all_courses_teach = http.request.env['op.course'].sudo().search([('id', 'in', all_courses_id)], limit=ppg, offset=pager['offset'])
+
+        values = {
+            'pager': pager,
+            'total_count': total_count,
+            'all_courses_teach': all_courses_teach,
+            'rows': 3
+        }
+        
+        data.update(values)
+
+        return http.request.render("stem_frontend_theme.my_courses_teach", data)
+
+
+    @http.route('/ask', type='http', auth="public", website=True, csrf=False)
+    def add_post(self, **kw):
+        # data = self.get_menu_data()
+        name = kw.get('questionname')
+        content = kw.get('questioncontent')
+        
+        if name:
+            post = http.request.env['forum.post'].create({
+                'name': name,
+                'plain_content': name,
+                'post_type': 'question',
+                'content': content,
+                'create_uid': http.request.env.uid,
+                'write_uid': http.request.env.uid,
+                'forum_id': 2,
+                'write_date': self.now(days=+1),
+                'create_date': self.now(days=+1)
+            })
+
+        # message = "Câu hỏi của bạn '"+ name +"'."
+        # values = {
+        #     'message': message
+        # }
+
+        # data.update(values)
+
+        return werkzeug.utils.redirect("/forum/stem-forum-2/question/%s" % (post.id))
+
+
+    @http.route('''/profile/<int:id>''', type='http',
+                auth="public", website=True)
+    def profile(self, id, **kw):
+        partner = http.request.env['res.partner'].sudo().browse(id);
+        if partner and partner.id == http.request.env.user.partner_id.id:
+            return http.request.redirect('/home')
+        else:
+            return http.request.redirect('/profile/' + str(id) + '/blogs')
+            # return http.request.render('stem_frontend_theme.stem_user_profile', {
+            #     'partner': partner
+            # })
+
+    @http.route('''/profile/<int:id>/blogs''', type='http',
+                auth="public", website=True)
+    def profile_blogs(self, id, **kw):
+        partner = http.request.env['res.partner'].sudo().browse(id);
+        data = self.get_menu_data()
+        if partner and partner.id == http.request.env.user.partner_id.id:
+            return http.request.redirect('/home/my-blogs')
+        else:
+            data['partner']= partner
+
+            return http.request.render('stem_frontend_theme.stem_profile_blogs',data)
+
+    @http.route('''/profile/<int:id>/courses''', type='http',
+                auth="public", website=True)
+    def profile_courses(self, id, **kw):
+        partner = http.request.env['res.partner'].sudo().browse(id);
+        if partner and partner.id == http.request.env.user.partner_id.id:
+            return http.request.redirect('/home/my-courses')
+        else:
+            data = {
+                'partner': partner
+            }
+            student_user = http.request.env['res.users'].sudo().search([('partner_id', '=', partner.id)], limit=1)
+            student_user_id = student_user.id
+
+            enrollments = http.request.env['op.course.enrollment'].sudo().search(
+                [('user_id', '=', student_user_id),
+                ('state', 'in', ['in_progress', 'done'])])
+            if enrollments:
+                data.update(self.my_course_details(enrollments))
+            return http.request.render('stem_frontend_theme.stem_profile_courses', data)
+
+    def new_access_token(self):
+        return uuid.uuid4().hex
+
+
+    @http.route('/rating/post', type='http', auth="public", website=True)
+    def rating(self, **kw):
+        res_name = kw.get('res_name')
+        res_model = kw.get('res_model')
+        res_id  = kw.get('res_id')
+        rating = kw.get('rating')
+        feedback = kw.get('message')
+        access_token = self.new_access_token()
+        course_id = kw.get('course_id')
+        
+
+
+        rate = http.request.env['rating.rating'].sudo().create({
+            'res_name': res_name,
+            'res_model': res_model,
+            'res_id': res_id,
+            'rating': rating,
+            'feedback': feedback,
+            'access_token': access_token,
+            'consumed': True,
+            'website_published': True
+            })
+
+        if rate:
+            message_id = tools.generate_tracking_message_id(''+ res_id + '-' + res_model + '')
+            email_from = http.request.env.user.name + " " + http.request.env.user.login
+            msg = http.request.env['mail.message'].sudo().create({
+                'subject': 'Re: ' + res_name,
+                'subtype_id': 1,
+                'res_id': res_id,
+                'message_id': message_id,
+                'body': feedback,
+                'record_name': res_name,
+                'no_auto_thread': False,
+                'reply_to': 'OpenEduCat <catchall@gmail.com>',
+                'author_id': http.request.env.user.partner_id.id,
+                'model': res_model,
+                'message_type': 'comment',
+                'email_from': email_from
+                })
+            rate.write({'message_id': msg.id})
+
+        return http.request.redirect('/course-detail/' + course_id)
+
+    @http.route(['/home/my-question',
+                 '/home/my-question/page/<int:page>'
+    ], type='http', auth="public", website=True)
+    def my_questions(self, search='', page=1, ppg=False, **post):
+        data = self.get_menu_data()
+        if ppg:
+            try:
+                ppg = int(ppg)
+            except ValueError:
+                ppg = 5
+            post["ppg"] = ppg
+        else:
+            ppg = 5
+
+            
+        forum = request.env['forum.forum'].sudo().search([('id', '=', 2)])       
+        url = '/home/my-question'
+        pager = request.website.pager(url=url, total=len(data['my_questions']), page=page,
+                                      step=ppg, scope=7,
+                                      url_args=post)
+        
+        my_question_ids = request.env['forum.post'].sudo().search([
+                ('parent_id', '=', False),
+                ('forum_id', '=', 2), ('create_uid', '=', http.request.env.user.id)],
+                limit=ppg, offset=pager['offset'],order='relevancy desc')
+        data['my_question_ids']= my_question_ids 
+        data['forum']=forum
+        data['pager']=pager
+        return http.request.render('stem_frontend_theme.stem_my_question', data);
+
+    @http.route('/home/session/change_password', type="http", method="POST", auth="user", website=True, csrf=False)
+    def change_password(self, **kw):
+        old_password = kw.get('old_password')
+        new_password = kw.get('new_password')
+        confirm_password = kw.get('confirm_password')
+        result = {}
+        if not (old_password.strip() and new_password.strip() and confirm_password.strip()):
+            result = {
+                'error':'Bạn không thể để trống bất kỳ mật khẩu nào.'
+            }
+            return str(json.dumps(result))
+
+        if new_password != confirm_password:
+            result = {
+                'error': 'Mật khẩu mới không khớp với mật khẩu xác nhận.'
+            }
+            return str(json.dumps(result))
+
+        try:
+            if http.request.env['res.users'].change_password(old_password, new_password):
+                result = {
+                    'success':'Thay đổi mật khẩu thành công.'
+                }
+                return str(json.dumps(result))
+
+        except Exception:
+            result = {
+                'error':'Mật khẩu cũ mà bạn cung cấp không chính xác, mật khẩu của bạn không được thay đổi.'
+            }
+            return str(json.dumps(result))
+
+        result = {
+            'error': 'Error, Mật khẩu của bạn không được thay đổi !'
+        }
+        return str(json.dumps(result))
+
+
+    @http.route('/home/session/change_profile', type="http", method="POST", auth="user", website=True, csrf=False)
+    def change_profile(self, **kw):
+        value_edit = kw.get('value')
+        model_edit = kw.get('model')
+        fields_edit = kw.get('fields')
+        editfield = kw.get('editfield')
+        result = {}
+        value_s = value_edit.encode('utf-8').strip()
+        model_s = model_edit.encode('utf-8').strip()
+        fields_s = fields_edit.encode('utf-8').strip()
+        editfield_s = editfield.encode('utf-8').strip()
+
+
+        if not value_s:
+            result = {
+                'error':'Bạn không thể để trống ' + editfield_s + '.'
+            }
+            return str(json.dumps(result))
+
+        try:
+            if model_s == 'res.partner':
+                partner = http.request.env['res.partner'].sudo().browse(http.request.env.user.partner_id.id)
+                partner.write({fields_s: value_s})
+                
+
+            if model_s == 'res.users':
+                user = http.request.env['res.users'].sudo().browse(http.request.env.user.id)
+                user.write({fields_s: value_s})
+
+                if fields_s == 'login':
+                    user.partner_id.write({'email': value_s})
+
+                
+            result = {
+                'success':'Thay đổi '+ editfield_s +' thành công.',
+                'values': value_s
+            }
+            return str(json.dumps(result))
+
+        except Exception:
+            result = {
+                'error':'Thông tin mà bạn cung cấp không chính xác, thông tin của bạn không được thay đổi.'
+            }
+            return str(json.dumps(result))
+
+        result = {
+            'error':'Thông tin của bạn không được thay đổi.'
+        }
+        return str(json.dumps(result))
+        
+    @http.route('/event', type="http", auth="public", website=True)
+    def view_event(self, **kw):
+        data = self.get_menu_data()
+        now = datetime.now()
+        now1 = datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
+        old_events=http.request.env['event.event'].sudo().search([('date_end','<',now1)])
+        data['old_events']=old_events
+        next_events = http.request.env['event.event'].sudo().search([('date_begin','>',now1)])
+        data['next_events']=next_events     
+        return http.request.render('stem_frontend_theme.stem_event', data)
+        
+    @http.route('/old-event', type="http", auth="public", website=True)
+    def view_old_event(self, **kw):
+        data = self.get_menu_data()
+        now = datetime.now()
+        now1 = datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
+        old_events=http.request.env['event.event'].sudo().search([('date_end','<',now1)])
+        data['old_events']=old_events
+        next_events = http.request.env['event.event'].sudo().search([('date_begin','>',now1)])
+        data['next_events']=next_events
+        return http.request.render('stem_frontend_theme.stem_old_event', data)
+        
+    @http.route('/current-event', type="http", auth="public", website=True)
+    def view_current_event(self, **kw):
+        data = self.get_menu_data()
+        now = datetime.now()
+        now1 = datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
+        old_events=http.request.env['event.event'].sudo().search([('date_end','<',now1)])
+        data['old_events']=old_events
+        next_events = http.request.env['event.event'].sudo().search([('date_begin','>',now1)])
+        data['next_events']=next_events
+        return http.request.render('stem_frontend_theme.stem_current_event', data)
+        
+    @http.route('/next-event', type="http", auth="public", website=True)
+    def view_next_event(self, **kw):
+        data = self.get_menu_data()
+        now = datetime.now()
+        now1 = datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
+        old_events=http.request.env['event.event'].sudo().search([('date_end','<',now1)])
+        data['old_events']=old_events
+        next_events = http.request.env['event.event'].sudo().search([('date_begin','>',now1)])
+        data['next_events']=next_events
+        return http.request.render('stem_frontend_theme.stem_next_event', data)
+
+    @http.route('/home/my-friend', type="http", auth="public", website=True)
+    def view_my_friends(self, **kw):
+        data = self.get_menu_data()
+        invite_friends = []
+        data['invite_friends'] = invite_friends     
+        return http.request.render('stem_frontend_theme.stem_my_friend', data)
+        
 class Website(Website):
     @http.route(auth='public')
     def index(self, data={}, **kw):
         super(Website, self).index(**kw)
 
         if http.request.session.uid:                        
-            online_free_courses = http.request.env['op.course'].sudo().search(                
-                [('online_course', '=', True), ('type', '=', 'free')], limit=3, order='create_date desc')
+            stem = Stem()
+            data = stem.get_menu_data()
 
-            online_paid_courses = http.request.env['op.course'].sudo().search(                
-                [('online_course', '=', True), ('type', '=', 'paid')], limit=3, order='create_date desc')
-
-            forums = http.request.env['forum.forum'].sudo().search([])
-
-            all_courses = http.request.env['op.course'].sudo().search([])
-
-            events = http.request.env['event.event'].sudo().search([])
-
-            course_porpular = http.request.env['stem.rec_cu_by_predef'].sudo().search([('user_id', '=', http.request.env.uid)], limit=9, order='computed_date desc')
-
-            return http.request.render('stem_frontend_theme.stem_home', {'online_free_courses': online_free_courses, 'online_paid_courses': online_paid_courses, 'course_porpular': course_porpular, 'forums': forums, 'events': events, 'all_courses': all_courses})        
+            return http.request.render('stem_frontend_theme.stem_home', data)        
         else:
 
             try:   
@@ -556,3 +1083,138 @@ class SignupVerifyEmail(AuthSignupHome):
 
         qcontext["message"] = _("Kiểm tra email của bạn để kích hoạt tài khoản của bạn!")
         return http.request.render("auth_signup.reset_password", qcontext)
+        
+class WebsiteForum(WebsiteForum):
+    def _prepare_forum_values(self, forum=None, **kwargs):
+        all_courses = http.request.env['op.course'].sudo().search([])
+        events = http.request.env['event.event'].sudo().search([])
+        values = {
+            'user': request.env.user,
+            'is_public_user': request.env.user.id == request.website.user_id.id,
+            'notifications': self._get_notifications(),
+            'header': kwargs.get('header', dict()),
+            'searches': kwargs.get('searches', dict()),
+            'forum_welcome_message': request.httprequest.cookies.get('forum_welcome_message', False),
+            'validation_email_sent': request.session.get('validation_email_sent', False),
+            'validation_email_done': request.session.get('validation_email_done', False),
+            'all_courses': all_courses,
+            'events': events,
+        }
+        if forum:
+            values['forum'] = forum
+        elif kwargs.get('forum_id'):
+            values['forum'] = request.env['forum.forum'].browse(kwargs.pop('forum_id'))
+        values.update(kwargs)
+        
+        return values
+        
+    @http.route('/forum/<model("forum.forum"):forum>/user/<model("res.users"):user>/saved', type='http', auth="user", methods=['POST'], website=True)
+    def save_edited_profiles(self, forum, user, **kwargs):
+        all_courses = http.request.env['op.course'].sudo().search([])
+        events = http.request.env['event.event'].sudo().search([])
+        values = {
+            'name': kwargs.get('name'),
+            'website': kwargs.get('website'),
+            'email': kwargs.get('email'),
+            'city': kwargs.get('city'),
+            'country_id': int(kwargs.get('country')) if kwargs.get('country') else False,
+            'website_description': kwargs.get('description'),
+            'all_courses': all_courses,
+            'events': events,
+        }
+
+        if 'clear_image' in kwargs:
+            values['image'] = False
+        elif kwargs.get('ufile'):
+            image = kwargs.get('ufile').read()
+            values['image'] = base64.b64encode(image)
+
+        if request.uid == user.id:  # the controller allows to edit only its own privacy settings; use partner management for other cases
+            values['website_published'] = kwargs.get('website_published') == 'True'
+        user.write(values)
+        return werkzeug.utils.redirect("/forum/%s/user/%d" % (slug(forum), user.id))
+
+
+class Binary(web.controllers.main.Binary):
+
+    @http.route('/web/binary/upload_attachment', type='http', method="POST", auth="user", csrf=False)
+    def upload_attachment(self, callback, model, id, ufile, multi=False):
+        if multi:
+
+            _logger.info('----------multi------------------')
+
+            attachment = http.request.env['ir.attachment']
+            result = {}
+
+            try:
+
+                attachment_id = attachment.create({ 
+                    'name': ufile.filename, 
+                    'datas': base64.encodestring(ufile.read()),
+                    'datas_fname': ufile.filename, 
+                    'res_model': model, 
+                    'res_id': int(id),
+                    'description': str(http.request.env.user.id)
+                })
+
+                if attachment_id:
+                    attachments = http.request.env['ir.attachment'].sudo().search([('id', '=', attachment_id.id), ('create_uid', '=', http.request.env.user.id)])
+                    
+                    attach = []
+                    for att in attachments:
+                        _logger.info(att)
+                        atts = {}
+                        atts['name'] = att.name
+                        atts['id'] = att.id
+                        atts['mimetype'] = att.mimetype
+                        attach.append(atts)
+
+                    result = {
+                        'attach': attach,
+                        'success': 'Tập tin được tải lên thành công.'
+                    }
+            except Exception:
+                args = {'error': "Đã xảy ra lỗi trong quá trình tải tệp tin."}
+                return str(json.dumps(args))
+
+            return str(json.dumps(result))
+        else:
+            return super(Binary, self).upload_attachment(callback, model, id, ufile)
+
+
+    @http.route('/web/binary/delete_attachment', type='http', method="POST", auth="user", csrf=False)
+    def delete_attachment(self, id):
+        result = {}
+        if id:
+            attachments = http.request.env['ir.attachment'].sudo().browse([int(id)])
+            try:
+                attachments.unlink()
+                result = {'success': 'Tập tin được xóa thành công.'}
+            except Exception:
+                result = {'error': "Đã xảy ra lỗi trong quá trình xóa tệp tin."}
+                return str(json.dumps(result))
+        else:
+            result = {'error': "Đã xảy ra lỗi trong quá trình xóa tệp tin."}
+
+
+        return str(json.dumps(result))
+               
+
+
+
+    @http.route('/web/binary/render_attachment', type='http', method="POST", auth="user", csrf=False)
+    def render_attachment(self, **kw):
+        attachments = http.request.env['ir.attachment'].sudo().search([('description', 'ilike', str(http.request.env.user.id)), ('create_uid', '=', http.request.env.user.id)])
+        attach = []
+        for att in attachments:
+            atts = {}
+            atts['name'] = att.name
+            atts['id'] = att.id
+            atts['mimetype'] = att.mimetype
+            attach.append(atts)
+
+        result = {
+            'attach': attach
+        }
+
+        return str(json.dumps(result))
